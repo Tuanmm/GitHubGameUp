@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: MatSand
+  m_Shader: {fileID: 4800000, guid: de4f84ee292a0c843a740cd8a1cfc01b, type: 3}
+  m_ShaderKeywords: _FLIPCOLOR3_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 75780639e21d37c4bb84a0cbabf559dd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TextureSample0:
+        m_Texture: {fileID: 2800000, guid: 75780639e21d37c4bb84a0cbabf559dd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Blend: 0.38
+    - _Blend1: 0.3
+    - _Brightness: 0.7
+    - _CenterHeight: 0
+    - _Contrast: 1
+    - _Flipcolor3: 1
+    - _HueScale: 1
+    - _HueShift: 0
+    - _LineFillRatio: 0
+    - _LineScale: 1
+    - _MaxVariance: 0.5
+    - _Soft: 0
+    - _Soft1: 0
+    - __dirty: 1
+    m_Colors:
+    - _Color1: {r: 1, g: 1, b: 1, a: 1}
+    - _Color2: {r: 1, g: 1, b: 1, a: 1}
+    - _Color3: {r: 0.1981132, g: 0.1981132, b: 0.1981132, a: 1}
+    - _HighColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LowColor: {r: 0.56122017, g: 0.4565682, b: 0.7169812, a: 1}
