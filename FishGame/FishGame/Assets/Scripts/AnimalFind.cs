@@ -21,6 +21,10 @@ public class AnimalFind : TrapFind
 
     public LineDirection m_lineDirection;
 
+    public AudioClip m_clipAttack;
+    public AudioSource m_audioSource;
+    public Quaternion m_startRot;
+
     public override void Awake()
     {
         base.Awake();
@@ -29,6 +33,8 @@ public class AnimalFind : TrapFind
             m_animator = transform.GetChild(0).GetComponent<Animator>();
         }
         m_collider = GetComponent<BoxCollider>();
+        m_audioSource = GetComponent<AudioSource>();
+        m_startRot = transform.localRotation;
     }
 
     private void OnEnable()
@@ -82,12 +88,20 @@ public class AnimalFind : TrapFind
                     float d = CalculatePathDistance(path);
                     if (d < distance )
                     {
-                        distance = d;
-                        m_currentTarget = m_listTarget[i];
-                        m_tempTarget = m_listTarget[i].transform.position;
-                        m_checkPlay = true;
-                        m_animator.SetFloat("Speed",2);
-                        m_navmeshAgent.SetPath(path);
+                        if (m_listTarget[i].tag.Equals("Human") && !m_listTarget[i].GetComponent<HumanControl>().m_checkSwim)
+                        {
+
+                        }
+                        else
+                        {
+                            distance = d;
+                            m_currentTarget = m_listTarget[i];
+                            m_tempTarget = m_listTarget[i].transform.position;
+                            m_checkPlay = true;
+                            m_animator.SetFloat("Speed", 2);
+                            m_navmeshAgent.SetPath(path);
+                        }
+                        
                     }
                     check = true;
                 }
@@ -146,24 +160,18 @@ public class AnimalFind : TrapFind
                                     {
                                         if (CalculatePathDistance(path) < 0.8f)
                                         {
-                                            m_navmeshAgent.enabled = false;
-                                            GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 50f);
-                                            m_animator.SetTrigger("Bang");
-                                            m_animator.Play("bang");
-                                            UiManager.Instance.OpenPanel("Fail", 0.5f);
+                                            OnAttack();
+                                            UiManager.Instance.OpenPanel("Fail", 0.8f);
                                             if (m_currentTarget == PutSandControl.Instance.m_fishControl.gameObject)
                                             {
-                                                //SimplePool.Spawn("SmokeSushi", (m_currentTarget.transform.position + transform.position)/2f, Quaternion.identity);
-                                                PutSandControl.Instance.m_fishControl.OnDeath();
-                                                GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishControl.gameObject, 0.0f);
+                                                PutSandControl.Instance.m_fishControl.OnDeath(0.1f);
+                                                GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishControl.gameObject, 0.1f);
                                             }
                                             else
                                             {
-                                                //SimplePool.Spawn("SmokeSushi", (m_currentTarget.transform.position + transform.position) / 2f, Quaternion.identity);
-                                                PutSandControl.Instance.m_fishEndControl.OnDeath();
-                                                GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishEndControl.gameObject, 0f);
+                                                PutSandControl.Instance.m_fishEndControl.OnDeath(0.1f);
+                                                GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishEndControl.gameObject, 0.1f);
                                             }
-                                            m_checkActive = false;
                                         }
                                         else
                                         {
@@ -183,9 +191,7 @@ public class AnimalFind : TrapFind
                                     {
                                         if (CalculatePathDistance(path) < 1.0f)
                                         {
-                                            m_navmeshAgent.enabled = false;
-                                            m_animator.Play("bang");
-                                            m_animator.SetTrigger("Bang");
+                                            OnAttack();
                                             GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 50f);
                                             StartCoroutine(Test((transform.position + m_currentTarget.transform.position)/2f));
                                         }
@@ -208,11 +214,7 @@ public class AnimalFind : TrapFind
                                     {
                                         if (CalculatePathDistance(path) < 1.0f)
                                         {
-                                            m_checkActive = false;
-                                            m_navmeshAgent.enabled = false;
-                                            m_animator.SetTrigger("Bang");
-                                            m_animator.Play("bang");
-                                            GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 50f);
+                                            OnAttack();
                                             m_currentTarget.GetComponent<HumanControl>().OnDeath(transform.position);
                                         }
                                         else
@@ -278,19 +280,39 @@ public class AnimalFind : TrapFind
         return distance;
     }
 
-    public void OnDeath()
+    public void OnDeath(float time = 0f, bool isActive = true)
     {
+        StartCoroutine(WaitToDeath(time, isActive));
+    }
+
+    private IEnumerator WaitToDeath(float time, bool isActive = true)
+    {
+        yield return Yielders.Get(time);
+        if (!isActive)
+        {
+            gameObject.SetActive(false);
+        }
+        else
+        {
+            m_navmeshAgent.enabled = false;
+            m_checkDie = true;
+            m_animator.SetTrigger("Death");
+            m_animator.Play("death");
+            m_collider.enabled = false;
+            StartCoroutine(DeathProcess());
+        }
+
+    }
+
+    public void OnAttack()
+    {
+        GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 50f);
+        m_audioSource.clip = m_clipAttack;
+        m_audioSource.Play();
+        m_checkActive = false;
         m_navmeshAgent.enabled = false;
-        //if (m_navmeshAgent.isOnNavMesh)
-        //{
-        //    m_navmeshAgent.isStopped = true;
-        //}
-        m_checkDie = true;
-        //m_animator.ResetTrigger("Bang");
-        m_animator.SetTrigger("Death");
-        m_animator.Play("death");
-        m_collider.enabled = false;
-        StartCoroutine(DeathProcess());
+        m_animator.SetTrigger("Bang");
+        m_animator.Play("bang");
     }
 
     IEnumerator DeathProcess()
@@ -309,7 +331,7 @@ public class AnimalFind : TrapFind
     {
         AnimalFind animalFind = m_currentTarget.GetComponent<AnimalFind>();
         //animalFind.m_animator.SetTrigger("Death");
-        yield return Yielders.Get(0.0f);
+        yield return Yielders.Get(0.1f);
         SimplePool.Spawn("SmokeSushi", pos /*+ Vector3.up * 0.2f*/, Quaternion.identity);
         yield return Yielders.Get(0.5f);
         if (!animalFind.m_checkDie)

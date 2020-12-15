@@ -6,11 +6,14 @@ public class FishEndControl : MonoBehaviour
 {
     [HideInInspector] public Animator m_animator;
 
+    public AudioSource m_audioSource;
+
     //public ParticleSystem m_effectSplash;
 
     private void Awake()
     {
         m_animator = transform.GetChild(0).GetComponent<Animator>();
+        m_audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -33,9 +36,10 @@ public class FishEndControl : MonoBehaviour
         transform.LookAt(PutSandControl.Instance.m_fishControl.transform);
         GameControl.Instance.m_fxComplete.transform.position = transform.position + Vector3.up;
         GameControl.Instance.m_fxComplete.SetActive(true);
+        m_audioSource.Play();
         yield return Yielders.Get(0.1f);
         m_animator.Play("Happy");
-        UiManager.Instance.OpenPanel("Complete", 1.0f);
+        UiManager.Instance.OpenPanel("Complete", 1.5f);
         yield return Yielders.Get(0.5f);
         SimplePool.Spawn("Splash", transform.position, Quaternion.identity);
         m_animator.ResetTrigger("Happy");
@@ -79,11 +83,29 @@ public class FishEndControl : MonoBehaviour
         }
     }
 
-    public void OnDeath()
+    public void OnDeath(float time = 0f, bool isActive = true)
     {
         GameControl.Instance.m_isFail = true;
-        //m_effectSplash.gameObject.SetActive(false);
-        m_animator.Play("Death");
-        m_animator.SetTrigger("Death");
+        StartCoroutine(WaitToDeath());
+    }
+
+    IEnumerator WaitToDeath(float time = 0f, bool isActive = true)
+    {
+        yield return Yielders.Get(time);
+        if (isActive)
+        {
+            m_animator.Play("Death");
+            m_animator.SetTrigger("Death");
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
+        yield return Yielders.Get(0.1f);
+        if (PlayerOptions.GetVibrate() == 1)
+        {
+            Vibration.Vibrate(60);
+        }
+
     }
 }

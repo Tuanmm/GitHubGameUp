@@ -30,7 +30,7 @@ public class LevelControl : MonoBehaviour
     }
 
     private List<Rigidbody> m_listObjectHasRigidbody;
-    private List<ObjectCanChangePos> m_listObjectCanChangePos;
+    public List<ObjectCanChangePos> m_listObjectCanChangePos;
 
     private void Awake()
     {
@@ -73,6 +73,7 @@ public class LevelControl : MonoBehaviour
             item.m_rigidbody.angularVelocity = Vector3.zero;
             item.m_rigidbody.transform.position = item.m_pos;
             item.m_rigidbody.transform.rotation = item.m_rotation;
+            item.m_rigidbody.transform.gameObject.SetActive(true);
         }
         yield return Yielders.EndOfFrame;
         foreach (var item in m_listdeformSand)
@@ -100,12 +101,14 @@ public class LevelControl : MonoBehaviour
         {
             item.gameObject.SetActive(false);
             item.transform.position = m_listPosAnimalFind[id];
+            item.transform.localRotation = item.m_startRot;
             foreach (var sand in m_listdeformSand)
             {
                 sand.PutLineStart(item, m_listPosAnimalFind[id], item.m_lineDistance, item.m_lineDirection,PutSandControl.Instance.m_radius * 2, PutSandControl.Instance.m_power);
             }
 
             PutSandControl.Instance.m_fishControl.m_listTarget.Add(m_listPosAnimalFind[id]);
+            yield return Yielders.EndOfFrame;
             item.gameObject.SetActive(true);
             id++;
         }

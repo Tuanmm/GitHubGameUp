@@ -10,17 +10,26 @@ public class FishControl : MonoBehaviour
     [HideInInspector] public Animator m_animator;
     public List<Vector3> m_listTarget;
 
+    public AudioSource m_audioSource;
+    public AudioClip m_clipWin;
+    public AudioClip m_clipFail;
+
+    public GameObject m_bubble;
+
     //public ParticleSystem m_effect;
 
     private void Awake()
     {
         m_navmeshAgent = GetComponent<NavMeshAgent>();
         m_animator = transform.GetChild(0).GetComponent<Animator>();
+        m_audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
     {
         ResetFishAI();
+        m_bubble.SetActive(true);
+        m_bubble.transform.position = transform.position + new Vector3(0.5f, 1.5f, 0.5f);
     }
 
     private void Update()
@@ -33,6 +42,8 @@ public class FishControl : MonoBehaviour
                 {
                     if (m_navmeshAgent.remainingDistance <= 1.5f)
                     {
+                        m_audioSource.clip = m_clipWin;
+                        m_audioSource.Play();
                         //m_effect.gameObject.SetActive(false);
                         transform.LookAt(m_listTarget[0]);
                         GameControl.Instance.m_isComplete = true;
@@ -80,13 +91,12 @@ public class FishControl : MonoBehaviour
                 if (m_navmeshAgent.CalculatePath(m_listTarget[0], path) && path.status == NavMeshPathStatus.PathComplete)
                 {
                     //m_effect.gameObject.SetActive(true);
-                    m_animator.SetTrigger("Swim");
                     m_animator.Play("Swim");
                     m_animator.SetFloat("Speed",2);
                     m_navmeshAgent.isStopped = false;
                     m_navmeshAgent.SetPath(path);
                     //m_navmeshAgent.SetDestination(item.position);
-
+                    m_bubble.SetActive(false);
                     //break;
                 }
                 else
@@ -143,11 +153,32 @@ public class FishControl : MonoBehaviour
         return distance * 2f;
     }
 
-    public void OnDeath()
+    public void OnDeath(float time = 0f, bool isActive = true)
     {
+        m_bubble.SetActive(false);
         GameControl.Instance.m_isFail = true;
-        m_animator.Play("Death");
-        m_animator.SetTrigger("Death");
+        StartCoroutine(WaitToDeath(time, isActive));
+    }
+
+    IEnumerator WaitToDeath(float time = 0f, bool isActive = true)
+    {
+        //m_audioSource.clip = m_clipFail;
+        //m_audioSource.Play();
+        yield return Yielders.Get(time);
+        if (PlayerOptions.GetVibrate() == 1)
+        {
+            Vibration.Vibrate(60);
+        }
+        if (isActive)
+        {
+            m_animator.Play("Death");
+            m_animator.SetTrigger("Death");
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
+
     }
 
     private IEnumerator ProcessComplete(Vector3 _point)

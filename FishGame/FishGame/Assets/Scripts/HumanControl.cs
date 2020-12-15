@@ -33,6 +33,10 @@ public class HumanControl : MonoBehaviour
     private Vector3 m_pointSecond;
     private HumanStyle m_startStyle;
 
+    public AudioSource m_audioSource;
+    public AudioClip m_clipFall;
+    public AudioClip m_clipAttack;
+
     private void Awake()
     {
         m_animator = transform.GetChild(0).GetComponent<Animator>();
@@ -40,6 +44,7 @@ public class HumanControl : MonoBehaviour
         m_collider = GetComponent<CapsuleCollider>();
         m_startPos = transform.position;
         m_startStyle = m_humanStyle;
+        m_audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -56,20 +61,21 @@ public class HumanControl : MonoBehaviour
             m_animator.SetFloat("Speed", m_speedMove);
         }
         m_effectInWater.SetActive(false);
+        m_radar.SetActive(false);
+        m_currentTarget = null;
     }
 
     private void Update()
     {
-        if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail)
+        if (!m_checkSwim)
         {
-            if (!m_checkSwim)
+            if (transform.position.y < -0.5f)
             {
-                if (transform.position.y < -0.25f)
-                {
-                    StartCoroutine(OnStartSwim());
-                    m_checkSwim = true;
-                }
-
+                StartCoroutine(OnStartSwim());
+                m_checkSwim = true;
+            }
+            if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail)
+            {
                 if (m_checkAttack)
                 {
                     switch (m_humanStyle)
@@ -84,7 +90,6 @@ public class HumanControl : MonoBehaviour
                             break;
                     }
                 }
-                TestCast();
             }
         }
     }
@@ -118,10 +123,11 @@ public class HumanControl : MonoBehaviour
                 m_checkAttack = false;
                 transform.LookAt(hit.point);
                 m_animator.Play("Attack");
-                StartCoroutine(WaitShowSplash(PutSandControl.Instance.m_fishControl.transform.position));
                 GameControl.Instance.m_isComplete = true;
-                PutSandControl.Instance.m_fishControl.OnDeath();
-                UiManager.Instance.OpenPanel("Fail", 0.5f);
+                PutSandControl.Instance.m_fishControl.OnDeath(0.2f);
+                GameControl.Instance.SpawnSmoke(hit.transform.gameObject,0.2f);
+                GameControl.Instance.OnSpawnSushi(hit.transform.gameObject, 0.2f);
+                UiManager.Instance.OpenPanel("Fail", 0.8f);
                 m_animator.SetTrigger("Idle");
                 m_currentTarget = PutSandControl.Instance.m_fishControl.gameObject;
                 return;
@@ -143,22 +149,15 @@ public class HumanControl : MonoBehaviour
                             m_animator.SetTrigger("Walk");
                             break;
                     }
-                    animalFind.OnDeath();
+                    animalFind.OnDeath(0.2f);
+                    GameControl.Instance.SpawnSmoke(hit.transform.gameObject, 0.2f);
+                    GameControl.Instance.OnSpawnSushi(hit.transform.gameObject, 0.2f);
                     StartCoroutine(WaitAttack());
-                    StartCoroutine(WaitShowSplash(animalFind.transform.position));
                     m_currentTarget = animalFind.gameObject;
-                    //animalFind.gameObject.SetActive(false);
                 }
             }
         }
     }
-
-    //void OnDrawGizmosSelected()
-    //{
-    //    Gizmos.color = Color.blue;
-    //    Gizmos.DrawLine(m_radar.transform.position, m_radar.transform.position+ m_radar.transform.forward * m_radiusRadar);
-    //    Gizmos.DrawWireSphere(m_radar.transform.position + m_radar.transform.forward * m_radiusRadar, 1);
-    //}
 
     public void ResetHuman()
     {
@@ -178,15 +177,29 @@ public class HumanControl : MonoBehaviour
     {
         m_collider.isTrigger = true;
         m_radar.SetActive(false);
+        m_audioSource.clip = m_clipFall;
+        m_audioSource.Play();
         while (transform.position.y > -1.5f)
         {
             yield return null;
         }
+        m_rigidbody.isKinematic = true;
+        transform.position = new Vector3(transform.position.x, -1.7f, transform.position.z);
         SimplePool.Spawn("Splash", transform.position + Vector3.up * 1.2f, Quaternion.identity);
         m_animator.Play("Swim");
-        m_rigidbody.isKinematic = true;
-        m_spear.SetActive(false);
+        //m_spear.SetActive(false);
         m_effectInWater.SetActive(true);
+        foreach (var item in GameControl.Instance.m_curentLevelControl.m_listAnimalFind)
+        {
+            item.OnActivated();
+        }
+        foreach (var item in GameControl.Instance.m_curentLevelControl.m_listBear)
+        {
+            if (item.m_bearState == BearState.ON_WATER)
+            {
+                StartCoroutine(item.FindAndMoveToTarget());
+            }
+        }
     }
 
     IEnumerator SetUpTarget()
@@ -201,22 +214,6 @@ public class HumanControl : MonoBehaviour
         m_checkAttack = false;
         yield return Yielders.Get(1.0f);
         m_checkAttack = true;
-    }
-
-    IEnumerator WaitShowSplash(Vector3 pos)
-    {
-        //Vector3 tempos = pos;
-        ////tempos.y = 1f;
-        //GameObject fx =  SimplePool.Spawn("FxSushi", tempos, Quaternion.identity);
-        //fx.transform.localEulerAngles = new Vector3(0f, Random.Range(0f, 180f), 0f);
-        //m_listFxSushi.Add(fx);
-        yield return Yielders.Get(0.25f);
-        SimplePool.Spawn("Splash", pos - Vector3.up * 0.4f, Quaternion.identity);
-        SimplePool.Spawn("SmokeSushi", pos + Vector3.up * 0.5f, Quaternion.identity);
-
-        m_currentTarget.SetActive(false);
-        GameControl.Instance.OnSpawnSushi(pos);
-
     }
 
     void InitLine(LineDirection _lineDirection, Vector3 _point, float _distance)
@@ -295,25 +292,47 @@ public class HumanControl : MonoBehaviour
 
     public void OnDeath(Vector3 target)
     {
-        GameControl.Instance.OnSpawnSmokeFighting(target);
+        GameControl.Instance.OnSpawnSmokeFighting(transform.position);
         GameControl.Instance.LookAtTarget(gameObject, target, 200f);
-        //m_animator.SetTrigger("Death");
         m_effectInWater.SetActive(false);
-        m_animator.ResetTrigger("Idle");
-        m_animator.Play("Attack");
-        m_animator.SetTrigger("OnSwim");
+        m_animator.Play("Attack_On_Water");
     }
 
-    public float m_maxAngleCast = 60;
-    public int m_numRay = 10;
-    public void TestCast()
-    {
-        for (int i = 0; i < m_numRay; i++)
-        {
-            float angle = i * (m_maxAngleCast / (m_numRay - 1));
 
-            Vector3 dir = Quaternion.AngleAxis(angle + (180 - (m_maxAngleCast / 2)), transform.up) * new Vector3(0, 0, -360);
-            Debug.DrawRay(transform.position , dir * m_maxDistance, Color.blue);
+    public void EventShowSplash()
+    {
+        Vector3 posSpawn = transform.position;
+        if (m_currentTarget != null)
+        {
+            posSpawn = m_currentTarget.transform.position;
+            m_currentTarget.SetActive(false);
+            m_currentTarget = null;
         }
-    } 
+        else
+        {
+            posSpawn = transform.position + transform.forward * 1.5f;
+        }
+        posSpawn.y = 0;
+        SimplePool.Spawn("Splash", posSpawn, Quaternion.identity);
+    }
+
+    public void EventPlaySoundAttack()
+    {
+        m_audioSource.clip = m_clipAttack;
+        m_audioSource.Play();
+    }
+
+
+    //public float m_maxAngleCast = 60;
+    //public int m_numRay = 10;
+    //public void TestCast()
+    //{
+    //    for (int i = 0; i < m_numRay; i++)
+    //    {
+    //        float angle = i * (m_maxAngleCast / (m_numRay - 1));
+
+    //        Vector3 dir = Quaternion.AngleAxis(angle + (180 - (m_maxAngleCast / 2)), transform.up) * new Vector3(0, 0, -360);
+    //        Debug.DrawRay(transform.position , dir * m_maxDistance, Color.blue);
+    //    }
+    //} 
 }

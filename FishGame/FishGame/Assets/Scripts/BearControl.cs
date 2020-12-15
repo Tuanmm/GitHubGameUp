@@ -12,7 +12,7 @@ public class BearControl : MonoBehaviour
     [HideInInspector] public Animator m_animator;
     [HideInInspector] public CapsuleCollider m_collider;
     [HideInInspector] public NavMeshAgent m_navmeshAgent;
-     public List<GameObject> m_listTarget;
+    public List<GameObject> m_listTarget;
     [HideInInspector] public BearState m_bearState = BearState.ON_SAND;
 
     public float m_maxDistanceFind = 3f;
@@ -22,8 +22,11 @@ public class BearControl : MonoBehaviour
 
     private Vector3 m_startPos;
     bool m_checkAttack;
-
     private Vector3 m_tempTarget;
+
+    public AudioSource m_audioSource;
+    public AudioClip m_clipFall;
+    public AudioClip m_clipAttack;
 
     private void Awake()
     {
@@ -32,6 +35,7 @@ public class BearControl : MonoBehaviour
         m_collider = GetComponent<CapsuleCollider>();
         m_navmeshAgent = GetComponent<NavMeshAgent>();
         m_startPos = transform.position;
+        m_audioSource = GetComponent<AudioSource>();
     }
 
     private void OnEnable()
@@ -41,7 +45,7 @@ public class BearControl : MonoBehaviour
 
     void Update()
     {
-        if (!GameControl.Instance.m_isComplete && m_checkPlay)
+        if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail && m_checkPlay)
         {
             switch (m_bearState)
             {
@@ -59,18 +63,19 @@ public class BearControl : MonoBehaviour
                                 GameObject _target = FindTargetAround(m_maxDistanceFind, Vector3.down);
                                 if (_target != null)
                                 {
+                                    m_currentTarget = _target;
                                     switch (_target.tag)
                                     {
                                         case "Player":
                                             {
                                                 GameControl.Instance.LookAtTarget(gameObject, PutSandControl.Instance.m_fishControl.transform.position, 50f);
                                                 m_animator.Play("Paw_Right");
-                                                GameControl.Instance.m_isComplete = true;
-                                                UiManager.Instance.OpenPanel("Fail", 0.5f);
+                                                GameControl.Instance.m_isFail = true;
+                                                UiManager.Instance.OpenPanel("Fail", 0.8f);
                                                 //PutSandControl.Instance.m_fishControl.m_animator.SetTrigger("Death");
-                                                PutSandControl.Instance.m_fishControl.OnDeath();
+                                                PutSandControl.Instance.m_fishControl.OnDeath(0.3f);
                                                 GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishControl.gameObject, 0.3f);
-                                                StartCoroutine(WaitShowSplash(PutSandControl.Instance.m_fishControl.transform.position));
+                                                //StartCoroutine(WaitShowSplash(PutSandControl.Instance.m_fishControl.gameObject));
                                             }
                                             break;
                                         case "Enemy":
@@ -80,11 +85,11 @@ public class BearControl : MonoBehaviour
                                                 {
                                                     GameControl.Instance.LookAtTarget(gameObject, _target.transform.position, 50f);
                                                     m_animator.Play("Paw_Right");
-                                                    _animalFind.OnDeath();
+                                                    _animalFind.OnDeath(0.2f);
                                                     m_listTarget.Remove(_target.gameObject);
                                                     StartCoroutine(WaitAttack());
-                                                    StartCoroutine(WaitShowSplash(_target.transform.position));
-                                                    GameControl.Instance.SpawnSmoke(_animalFind.gameObject, 0.1f);
+                                                    //StartCoroutine(WaitShowSplash(_target.gameObject));
+                                                    GameControl.Instance.SpawnSmoke(_animalFind.gameObject, 0.2f);
                                                 }
                                             }
                                             break;
@@ -109,7 +114,7 @@ public class BearControl : MonoBehaviour
 
                             if (m_currentTarget != null)
                             {
-                                if (Vector3.Distance(m_tempTarget, transform.position) < 1.0f)
+                                if (Vector3.Distance(m_tempTarget, transform.position) < 1.5f)
                                 {
                                     m_tempTarget = m_currentTarget.transform.position;
                                     m_navmeshAgent.SetDestination(m_tempTarget);
@@ -126,29 +131,30 @@ public class BearControl : MonoBehaviour
                                 {
                                     case "Player":
                                         {
-                                            if (_distance <= 2.5f)
+                                            if (_distance <= 3.5f)
                                             {
                                                 NavMeshPath path = new NavMeshPath();
                                                 m_tempTarget = m_currentTarget.transform.position;
                                                 if (m_navmeshAgent.isOnNavMesh && m_navmeshAgent.CalculatePath(m_tempTarget, path) && path.status == NavMeshPathStatus.PathComplete)
                                                 {
-                                                    if (CalculatePathDistance(path) < 1.5f)
+                                                    if (CalculatePathDistance(path) < 2.0f)
                                                     {
                                                         GameControl.Instance.m_isComplete = true;
-                                                        UiManager.Instance.OpenPanel("Fail", 0.5f);
+                                                        UiManager.Instance.OpenPanel("Fail", 0.8f);
                                                         if (m_currentTarget == PutSandControl.Instance.m_fishControl.gameObject)
                                                         {
                                                             //StartCoroutine(GameControl.Instance.SpawnSmoke(m_currentTarget.transform.position, 0.1f));
-                                                            PutSandControl.Instance.m_fishControl.OnDeath();
-                                                            GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishControl.gameObject, 0.0f);
+                                                            PutSandControl.Instance.m_fishControl.OnDeath(0.3f);
+                                                            GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishControl.gameObject, 0.3f);
                                                         }
                                                         else
                                                         {
-                                                            PutSandControl.Instance.m_fishEndControl.OnDeath();
-                                                            GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishEndControl.gameObject, 0f);
+                                                            PutSandControl.Instance.m_fishEndControl.OnDeath(0.3f);
+                                                            GameControl.Instance.SpawnSmoke(PutSandControl.Instance.m_fishEndControl.gameObject, 0.3f);
                                                         }
                                                         m_animator.SetTrigger("Swim");
                                                         ProcessAttack();
+                                                        GameControl.Instance.OnSpawnSmokeFighting(transform.position);
                                                     }
                                                     else
                                                     {
@@ -166,11 +172,9 @@ public class BearControl : MonoBehaviour
                                                 m_tempTarget = m_currentTarget.transform.position;
                                                 if (m_navmeshAgent.isOnNavMesh && m_navmeshAgent.CalculatePath(m_tempTarget, path) && path.status == NavMeshPathStatus.PathComplete)
                                                 {
-                                                    if (CalculatePathDistance(path) < 2.0f)
+                                                    if (CalculatePathDistance(path) < 2.5f)
                                                     {
-                                                        //m_animator.SetTrigger("Death");
-                                                        //m_animator.ResetTrigger("Swim");
-                                                        GameControl.Instance.OnSpawnSmokeFighting((transform.position + m_currentTarget.transform.position) / 2f);
+                                                        GameControl.Instance.OnSpawnSmokeFighting(transform.position);
                                                         ProcessAttack();
                                                     }
                                                     else
@@ -190,14 +194,13 @@ public class BearControl : MonoBehaviour
                                                 m_tempTarget = m_currentTarget.transform.position;
                                                 if (m_navmeshAgent.isOnNavMesh && m_navmeshAgent.CalculatePath(m_tempTarget, path) && path.status == NavMeshPathStatus.PathComplete)
                                                 {
-                                                    if (CalculatePathDistance(path) < 1.5f)
+                                                    if (CalculatePathDistance(path) < 2.0f)
                                                     {
-                                                        m_currentTarget.GetComponent<AnimalFind>().OnDeath();
+                                                        m_currentTarget.GetComponent<AnimalFind>().OnDeath(0.3f);
                                                         m_animator.SetTrigger("Swim");
                                                         ProcessAttack();
-                                                        m_checkPlay = true;
-                                                        //m_navmeshAgent.enabled = true;
-                                                        GameControl.Instance.SpawnSmoke(m_currentTarget.gameObject, 0.1f);
+                                                        //m_checkPlay = true;
+                                                        GameControl.Instance.SpawnSmoke(m_currentTarget.gameObject, 0.3f);
                                                     }
                                                     else
                                                     {
@@ -212,9 +215,9 @@ public class BearControl : MonoBehaviour
                                             if (_distance <= 2.5f)
                                             {
                                                 m_currentTarget.GetComponent<HumanControl>().OnDeath((transform.position + m_currentTarget.transform.position) / 2f);
-                                                m_animator.SetTrigger("Swim");
+                                                //m_animator.SetTrigger("Swim");
                                                 ProcessAttack();
-                                                m_checkPlay = true;
+                                                //m_checkPlay = true;
                                                 //m_navmeshAgent.enabled = true;
                                             }
                                         }
@@ -224,17 +227,6 @@ public class BearControl : MonoBehaviour
 
                             }
                         }
-                        //else
-                        //{
-                        //    if (m_checkAttack)
-                        //    {
-                        //        GameObject _target = FindTargetAround(m_maxDistanceFind, Vector3.up);
-                        //        if (_target != null)
-                        //        {
-                        //            m_navmeshAgent.enabled = true;
-                        //        }
-                        //    }
-                        //}
                     }
                     break;
             }
@@ -246,9 +238,7 @@ public class BearControl : MonoBehaviour
         m_navmeshAgent.enabled = false;
         GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 10f);
         m_animator.Play("Paw_Left");
-        StartCoroutine(WaitShowSplash(m_currentTarget.transform.position));
         m_checkPlay = false;
-        //m_currentTarget = null;
     }
 
     IEnumerator SetUpTarget()
@@ -278,6 +268,8 @@ public class BearControl : MonoBehaviour
     IEnumerator OnStartSwim()
     {
         m_collider.isTrigger = true;
+        m_audioSource.clip = m_clipFall;
+        m_audioSource.Play();
         while (transform.position.y > -0.4f)
         {
             yield return null;
@@ -342,6 +334,7 @@ public class BearControl : MonoBehaviour
 
     public void ResetBear()
     {
+        m_collider.enabled = true;
         m_checkAttack = true;
         m_checkPlay = false;
         m_bearState = BearState.ON_SAND;
@@ -365,11 +358,16 @@ public class BearControl : MonoBehaviour
         return distance;
     }
 
-    IEnumerator WaitShowSplash(Vector3 pos, float time = 0.3f)
+    public void EventPlaySoundAttack()
     {
-        pos.y = -0.4f;
-        yield return Yielders.Get(0.3f);
-        //SimplePool.Spawn("SmokeSushi", m_currentTarget.transform.position, Quaternion.identity);
+        m_audioSource.clip = m_clipAttack;
+        m_audioSource.Play();
+    }
+
+    public void EventShowSplash()
+    {
+        Vector3 pos = m_currentTarget.transform.position;
+        pos.y = 0f;
         SimplePool.Spawn("Splash", pos, Quaternion.identity);
     }
 
@@ -381,24 +379,22 @@ public class BearControl : MonoBehaviour
         {
             return hitColliders[0].gameObject;
         }
-        //foreach (var hitCollider in hitColliders)
-        //{
-        //    if (hitCollider)
-        //    {
-
-        //    }
-        //}
-        //if (Physics.SphereCast(transform.position, _radius, dir, out hit, 1f, LayerMask.GetMask("Fish")))
-        //{
-        //    return hit.transform.gameObject;
-        //}
         return null;
     }
 
-    void OnDrawGizmosSelected()
+    //void OnDrawGizmosSelected()
+    //{
+    //    Gizmos.color = Color.blue;
+    //    Gizmos.DrawWireSphere(transform.position + Vector3.down * 1, m_maxDistanceFind);
+    //}
+
+    public void OnDeath()
     {
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position + Vector3.down * 1, m_maxDistanceFind);
+        m_collider.enabled = false;
+        m_animator.Play("Death");
+        m_checkPlay = false;
+        SimplePool.Spawn("SmokeSushi", transform.position + transform.forward, Quaternion.identity);
+        //GameControl.Instance.SpawnSmoke(gameObject);
     }
 
 }

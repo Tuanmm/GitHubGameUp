@@ -93,7 +93,7 @@ public class DeformSand : MonoBehaviour
 
     private void Update()
     {
-        if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail)
+        if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail && !UiManager.Instance.m_groupSetting.activeSelf && UiManager.Instance.m_panelPlay.activeSelf)
         {
             switch (PutSandControl.Instance.m_playStyle)
             {
@@ -109,7 +109,6 @@ public class DeformSand : MonoBehaviour
             {
                 TouchUpProcess();
             }
-
             if (Input.GetMouseButton(0))
             {
                 m_ray = m_cam.ScreenPointToRay(Input.mousePosition);
@@ -125,7 +124,6 @@ public class DeformSand : MonoBehaviour
         {
             Vector3 _point = m_hit.point;
             _point.y = 0;
-            //if ((m_planeCenters - m_hit.point).sqrMagnitude < PutSandControl.Instance.m_planeDistance)
             {
                 _point = LimitPut(_point);
                 m_checkPut = true;
@@ -141,20 +139,11 @@ public class DeformSand : MonoBehaviour
                 {
                     GameControl.Instance.m_hand.SetActive(false);
                 }
+                //if (PutSandControl.Instance.m_fishControl.m_bubble.activeSelf)
+                //{
+                //    PutSandControl.Instance.m_fishControl.m_bubble.SetActive(false);
+                //}
             }
-            //else
-            //{
-            //    if (m_checkPut)
-            //    {
-            //        m_checkPut = false;
-            //        //TouchUpProcess();
-            //        if (m_checkChangeMesh)
-            //        {
-            //            m_checkChangeMesh = false;
-            //            StartCoroutine(UpdateMesh(0.5f));
-            //        }
-            //    }
-            //}
         }
         else
         {
@@ -201,8 +190,9 @@ public class DeformSand : MonoBehaviour
         bool somethingDeformed = false;
         for (int i = 0; i < m_arrVerts.Length; i++)
         {
-            float dist = (m_arrVerts[i] - _tempPos).sqrMagnitude;
-            if (dist <= _radius /*&& m_arrVerts[i].y > -0.75f*/)
+            float dist = new Vector3(m_arrVerts[i].x - _tempPos.x, 0, m_arrVerts[i].z - _tempPos.z).sqrMagnitude;
+
+            if (dist <= _radius)
             {
                 somethingDeformed = true;
                 if (m_check)
@@ -216,12 +206,11 @@ public class DeformSand : MonoBehaviour
                 }
 
             }
-
         }
         if (somethingDeformed)
         {
             m_checkChangeMesh = true;
-            CreatePath(_positionToDeform, _radius * 0.75f);
+            CreatePath(_positionToDeform, _radius * 0.8f);
             m_planeMesh.vertices = m_arrVerts;
             m_meshCollider.sharedMesh = m_planeMesh;
 
@@ -252,22 +241,26 @@ public class DeformSand : MonoBehaviour
         }
     }
 
-    IEnumerator ProcessPutHole(int i, float _target , float _time, float _max = 0.5f)
+    IEnumerator ProcessPutHole(int i, float _delta , float _time, float _max = 0.5f)
     {
-        //if (_max > 0.1f)
-        //{
-        //    _max = 0.5f;
-        //}
-        //else
-        //{
-        //    _max -= _target;
-        //}
+        if (_max > 0.05f)
+        {
+            _max = 0.5f;
+        }
+        else
+        {
+            _max /= 4f;
+        }
         while ( _time  > 0)
         {
-            if (_max > _target)
+            if (m_arrVerts[i].y < -0.75f)
             {
-                m_arrVerts[i].y -=_target;
-                _max -= _target;
+                break;
+            }
+            if (_max > _delta)
+            {
+                m_arrVerts[i].y -=_delta;
+                _max -= _delta;
             }
             else
             {
@@ -329,6 +322,9 @@ public class DeformSand : MonoBehaviour
     {
         Vector3 _pointFirst = Vector3.zero;
         Vector3 _pointSecond = Vector3.zero;
+
+        //_pointFirst = _point + _animalFind.transform.forward * _distance;
+        //_pointSecond = _point - _animalFind.transform.forward * _distance;
         switch (_lineDirection)
         {
             case LineDirection.HORIZONTAL:

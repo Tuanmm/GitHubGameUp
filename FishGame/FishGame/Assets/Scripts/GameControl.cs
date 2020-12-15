@@ -51,6 +51,12 @@ public class GameControl : MonoBehaviour
         {
             item.SetActive(false);
         }
+        //m_curentLevel = PlayerOptions.GetCurrentLevel();
+    }
+
+    private void Start()
+    {
+        StartGame();
     }
 
     public void LoadLevel(int level)
@@ -90,7 +96,6 @@ public class GameControl : MonoBehaviour
             m_curentLevelControl.gameObject.SetActive(false);
         }
         m_curentLevelControl = m_listLevel[level];
-        m_curentLevelControl.gameObject.SetActive(true);
         CameraFollower.Instance.ResetCamPos();
         UiManager.Instance.OpenPanel("Play");
         m_isComplete = false;
@@ -98,6 +103,9 @@ public class GameControl : MonoBehaviour
         PutSandControl.Instance.m_effectPutSand.Stop();
         m_putSandControl.m_emissionModule.rateOverDistance = 0;
         m_hand.SetActive(false);
+        UiManager.Instance.m_txtLevel.text = "Level " + m_curentLevel;
+        UiManager.Instance.m_txtOutLineLevel.text = "Level " + m_curentLevel;
+        m_curentLevelControl.gameObject.SetActive(true);
     }
 
     public void OnclickRetry()
@@ -117,12 +125,22 @@ public class GameControl : MonoBehaviour
             m_curentLevel = 0;
         }
         LoadLevel(m_curentLevel);
+        PlayerOptions.SetCurrentlevel(m_curentLevel);
     }
 
     public void OnClickStart()
     {
+        //m_idEnv = UnityEngine.Random.Range(0, m_listEnv.Count);
+        //LoadLevel(m_curentLevel);
+        UiManager.Instance.OpenPanel("Play");
+        GameControl.Instance.m_isComplete = false;
+    }
+
+    public void StartGame()
+    {
         m_idEnv = UnityEngine.Random.Range(0, m_listEnv.Count);
         LoadLevel(m_curentLevel);
+        UiManager.Instance.OpenPanel("Start");
     }
 
     public void LookAtTarget(GameObject _objectLook, Vector3 _target, float _speed)
@@ -200,7 +218,7 @@ public class GameControl : MonoBehaviour
 
     public void OnSpawnSmokeFighting(Vector3 _pos)
     {
-        _pos.y = 1;
+        _pos.y = 2f;
         GameObject objSpawn = SimplePool.Spawn("SmokeFighting", _pos, Quaternion.identity);
         m_listEffectSmokeFighting.Add(objSpawn);
     }
@@ -219,8 +237,16 @@ public class GameControl : MonoBehaviour
 
 
     private List<GameObject> m_listFxSushi = new List<GameObject>();
-    public void OnSpawnSushi(Vector3 _pos)
+
+    public void OnSpawnSushi(GameObject obj, float time = 0f)
     {
+        StartCoroutine(WaitSpawnSushi(obj, time));
+    }
+
+    IEnumerator WaitSpawnSushi(GameObject obj, float time = 0f)
+    {
+        yield return Yielders.Get(time);
+        Vector3 _pos = obj.transform.position;
         _pos.y = 0;
         GameObject fx = SimplePool.Spawn("FxSushi", _pos, Quaternion.identity);
         fx.transform.localEulerAngles = new Vector3(0f, UnityEngine.Random.Range(0f, 360f), 0f);
@@ -255,11 +281,11 @@ public class GameControl : MonoBehaviour
         {
             if (i == id)
             {
-                m_listEnv[i].SetActive(false);
+                m_listEnv[i].SetActive(true);
             }
             else
             {
-                m_listEnv[i].SetActive(true);
+                m_listEnv[i].SetActive(false);
             }
         }
     }
