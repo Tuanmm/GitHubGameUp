@@ -12,6 +12,8 @@ public class LevelControl : MonoBehaviour
     public List<HumanControl> m_listHuman;
     public List<BearControl> m_listBear;
     public List<Spline> m_listSpline;
+    public List<float> m_listTimePlayHint;
+    public float m_timeWaitNextHint = 0.1f;
 
     private List<Vector3> m_listPosAnimalFind;
 
@@ -31,6 +33,8 @@ public class LevelControl : MonoBehaviour
 
     private List<Rigidbody> m_listObjectHasRigidbody;
     public List<ObjectCanChangePos> m_listObjectCanChangePos;
+
+    public bool m_isShowHint = false;
 
     private void Awake()
     {
@@ -95,13 +99,11 @@ public class LevelControl : MonoBehaviour
         GameControl.Instance.LookAtTarget(PutSandControl.Instance.m_fishEndControl.gameObject, m_Start.position,360f);
         GameControl.Instance.LookAtTarget(PutSandControl.Instance.m_fishControl.gameObject, m_End.position,360f);
    
-
         int id = 0;
         foreach (var item in m_listAnimalFind)
         {
             item.gameObject.SetActive(false);
             item.transform.position = m_listPosAnimalFind[id];
-            item.transform.localRotation = item.m_startRot;
             foreach (var sand in m_listdeformSand)
             {
                 sand.PutLineStart(item, m_listPosAnimalFind[id], item.m_lineDistance, item.m_lineDirection,PutSandControl.Instance.m_radius * 2, PutSandControl.Instance.m_power);
@@ -115,9 +117,17 @@ public class LevelControl : MonoBehaviour
 
         yield return Yielders.Get(0.5f);
 
-        if (GameControl.Instance.m_checkHint && m_listSpline.Count >0)
+        if ((GameControl.Instance.m_checkHint || m_isShowHint) && m_listSpline.Count >0)
         {
-            GameControl.Instance.MoveHint(m_listSpline[0]);
+            GameControl.Instance.m_checkHint = true;
+            while (GameControl.Instance.m_checkHint)
+            {
+                for (int i = 0; i < m_listSpline.Count; i++)
+                {
+                    GameControl.Instance.MoveHint(m_listSpline[i], m_listTimePlayHint[i]);
+                    yield return Yielders.Get((float)1f / m_listTimePlayHint[i] + m_timeWaitNextHint);
+                }
+            }
         }
         //PutSandControl.Instance.m_curentSand = m_listdeformSand;
     }

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 420078}
   - component: {fileID: 19846840}
   - component: {fileID: 19901248}
+  - component: {fileID: 5158070175879672189}
   m_Layer: 0
   m_Name: EmojiDisappointed
   m_TagString: Untagged
@@ -4893,3 +4894,17 @@ ParticleSystemRenderer:
   m_Mesh2: {fileID: 0}
   m_Mesh3: {fileID: 0}
   m_MaskInteraction: 0
+--- !u!114 &5158070175879672189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 158680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1c6b09d225d4e54385bb4deed9d18be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_isDespawn: 1
+  _time: 1.5

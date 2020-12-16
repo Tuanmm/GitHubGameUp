@@ -135,9 +135,10 @@ public class DeformSand : MonoBehaviour
                 }
                 PutSandControl.Instance.m_effectPutSand.transform.position = _point;
 
-                if (GameControl.Instance.m_hand.activeSelf)
+                if (GameControl.Instance.m_checkHint)
                 {
-                    GameControl.Instance.m_hand.SetActive(false);
+                    GameControl.Instance.m_checkHint = false;
+                    //GameControl.Instance.m_hand.SetActive(false);
                 }
                 //if (PutSandControl.Instance.m_fishControl.m_bubble.activeSelf)
                 //{
@@ -247,13 +248,13 @@ public class DeformSand : MonoBehaviour
         {
             _max = 0.5f;
         }
-        else
-        {
-            _max /= 4f;
-        }
+        //else
+        //{
+        //    _max /= 4f;
+        //}
         while ( _time  > 0)
         {
-            if (m_arrVerts[i].y < -0.75f)
+            if (m_arrVerts[i].y < -1f)
             {
                 break;
             }
@@ -322,29 +323,29 @@ public class DeformSand : MonoBehaviour
     {
         Vector3 _pointFirst = Vector3.zero;
         Vector3 _pointSecond = Vector3.zero;
-
-        //_pointFirst = _point + _animalFind.transform.forward * _distance;
-        //_pointSecond = _point - _animalFind.transform.forward * _distance;
-        switch (_lineDirection)
-        {
-            case LineDirection.HORIZONTAL:
-                _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z);
-                _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z);
-                break;
-            case LineDirection.VERTICAL:
-                _pointFirst = new Vector3(_point.x, _point.y, _point.z - _distance);
-                _pointSecond = new Vector3(_point.x, _point.y, _point.z + _distance);
-                break;
-            case LineDirection.DIAGONAL:
-                _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z + _distance);
-                _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z - _distance);
-                break;
-            case LineDirection.ANTIDIAGONAL:
-                _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z - _distance);
-                _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z + _distance);
-                break;
-        }
-        int count = (int)(_distance / (_radius / 6f));
+        _animalFind.transform.localEulerAngles = _animalFind.m_startRot;
+        _pointFirst = _point + _animalFind.transform.forward * _distance;
+        _pointSecond = _point - _animalFind.transform.forward * _distance;
+        //switch (_lineDirection)
+        //{
+        //    case LineDirection.HORIZONTAL:
+        //        _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z);
+        //        _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z);
+        //        break;
+        //    case LineDirection.VERTICAL:
+        //        _pointFirst = new Vector3(_point.x, _point.y, _point.z - _distance);
+        //        _pointSecond = new Vector3(_point.x, _point.y, _point.z + _distance);
+        //        break;
+        //    case LineDirection.DIAGONAL:
+        //        _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z + _distance);
+        //        _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z - _distance);
+        //        break;
+        //    case LineDirection.ANTIDIAGONAL:
+        //        _pointFirst = new Vector3(_point.x - _distance, _point.y, _point.z - _distance);
+        //        _pointSecond = new Vector3(_point.x + _distance, _point.y, _point.z + _distance);
+        //        break;
+        //}
+        int count = (int)(_distance / (_radius / 4f));
 
         for (int i = 0; i <= count; i++)
         {

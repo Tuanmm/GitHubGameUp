@@ -14,10 +14,6 @@ public class FishControl : MonoBehaviour
     public AudioClip m_clipWin;
     public AudioClip m_clipFail;
 
-    public GameObject m_bubble;
-
-    //public ParticleSystem m_effect;
-
     private void Awake()
     {
         m_navmeshAgent = GetComponent<NavMeshAgent>();
@@ -28,8 +24,8 @@ public class FishControl : MonoBehaviour
     private void OnEnable()
     {
         ResetFishAI();
-        m_bubble.SetActive(true);
-        m_bubble.transform.position = transform.position + new Vector3(0.5f, 1.5f, 0.5f);
+        GameControl.Instance.m_bubbleFxFishPink.SetActive(true);
+        GameControl.Instance.m_bubbleFxFishPink.transform.position = transform.position + new Vector3(0.5f, 1.5f, 0.5f);
     }
 
     private void Update()
@@ -96,7 +92,7 @@ public class FishControl : MonoBehaviour
                     m_navmeshAgent.isStopped = false;
                     m_navmeshAgent.SetPath(path);
                     //m_navmeshAgent.SetDestination(item.position);
-                    m_bubble.SetActive(false);
+                    GameControl.Instance.m_bubbleFxFishPink.SetActive(false);
                     //break;
                 }
                 else
@@ -155,7 +151,7 @@ public class FishControl : MonoBehaviour
 
     public void OnDeath(float time = 0f, bool isActive = true)
     {
-        m_bubble.SetActive(false);
+        GameControl.Instance.m_bubbleFxFishPink.SetActive(false);
         GameControl.Instance.m_isFail = true;
         StartCoroutine(WaitToDeath(time, isActive));
     }
@@ -208,7 +204,7 @@ public class FishControl : MonoBehaviour
                 else
                 {
                     check = false;
-                    StartCoroutine(PutSandControl.Instance.m_fishEndControl.Test(_point));
+                    StartCoroutine(PutSandControl.Instance.m_fishEndControl.SwimAround(_point));
                 }
             }
             

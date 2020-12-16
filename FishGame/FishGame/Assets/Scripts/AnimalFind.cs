@@ -23,7 +23,6 @@ public class AnimalFind : TrapFind
 
     public AudioClip m_clipAttack;
     public AudioSource m_audioSource;
-    public Quaternion m_startRot;
 
     public override void Awake()
     {
@@ -34,7 +33,6 @@ public class AnimalFind : TrapFind
         }
         m_collider = GetComponent<BoxCollider>();
         m_audioSource = GetComponent<AudioSource>();
-        m_startRot = transform.localRotation;
     }
 
     private void OnEnable()
@@ -307,8 +305,6 @@ public class AnimalFind : TrapFind
     public void OnAttack()
     {
         GameControl.Instance.LookAtTarget(gameObject, m_currentTarget.transform.position, 50f);
-        m_audioSource.clip = m_clipAttack;
-        m_audioSource.Play();
         m_checkActive = false;
         m_navmeshAgent.enabled = false;
         m_animator.SetTrigger("Bang");

@@ -13,6 +13,17 @@ public class BearEvent : MonoBehaviour
 
     public void PlaySoundAttack()
     {
-        m_bearControl.EventPlaySoundAttack();
+        if (UiManager.Instance.m_panelPlay.activeSelf)
+        {
+            m_bearControl.EventPlaySoundAttack();
+        }
+    }
+
+    public void ShowEmoji()
+    {
+        if (m_bearControl.m_bearState == BearState.ON_WATER && !GameControl.Instance.m_isFail && !GameControl.Instance.m_isComplete)
+        {
+            GameControl.Instance.ShowEmojiSad(transform.position + new Vector3());
+        }
     }
 }

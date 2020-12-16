@@ -231,6 +231,13 @@ public class BearControl : MonoBehaviour
                     break;
             }
         }
+        else
+        {
+            if (m_navmeshAgent.isActiveAndEnabled)
+            {
+                m_navmeshAgent.isStopped = true;
+            }
+        }
     }
 
     void ProcessAttack()

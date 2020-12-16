@@ -12,6 +12,17 @@ public class HumanEvent : MonoBehaviour
 
     public void PlaySoundAttack()
     {
-        m_humanControl.EventPlaySoundAttack();
+        if (UiManager.Instance.m_panelPlay.activeSelf)
+        {
+            m_humanControl.EventPlaySoundAttack();
+        }
+    }
+
+    public void ShowEmoji()
+    {
+        if (m_humanControl.m_checkSwim && !GameControl.Instance.m_isFail && !GameControl.Instance.m_isComplete)
+        {
+            GameControl.Instance.ShowEmojiSad(transform.position + new Vector3());
+        }
     }
 }

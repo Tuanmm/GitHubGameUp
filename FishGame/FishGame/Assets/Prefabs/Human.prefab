@@ -130,8 +130,6 @@ MonoBehaviour:
   m_audioSource: {fileID: 0}
   m_clipFall: {fileID: 8300000, guid: 3f28a6af193b3534a96212955d7dade8, type: 3}
   m_clipAttack: {fileID: 8300000, guid: d73007eb8cac28f40a2000afba3d1135, type: 3}
-  m_maxAngleCast: 60
-  m_numRay: 10
 --- !u!82 &4572877443046185109
 AudioSource:
   m_ObjectHideFlags: 0
@@ -144,7 +142,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.8
   m_Pitch: 1
   Loop: 0
   Mute: 0

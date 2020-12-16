@@ -7,9 +7,11 @@ public class TrapFind : MonoBehaviour
 {
     [HideInInspector] public NavMeshAgent m_navmeshAgent;
     [HideInInspector] public Animator m_animator;
+    public Vector3 m_startRot;
 
     public virtual void Awake()
     {
+        //m_startRot = transform.localEulerAngles;
         m_navmeshAgent = GetComponent<NavMeshAgent>();
         m_animator = GetComponent<Animator>();
     }

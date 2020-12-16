@@ -81,6 +81,7 @@ MonoBehaviour:
   m_lineDirection: 0
   m_clipAttack: {fileID: 8300000, guid: 71a81d9e3e00bc94dbaff24063806f48, type: 3}
   m_audioSource: {fileID: 0}
+  m_startRot: {x: 0, y: 0, z: 0, w: 0}
 --- !u!65 &7199776533717768546
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -209,6 +210,19 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &8891657926364403314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8191029604586274364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60dc66fb63aff3247916f332bf49277f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_enemyControl: {fileID: 2954916927503291930}
 --- !u!1001 &5281174078688372304
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -61,7 +61,7 @@ public class HumanControl : MonoBehaviour
             m_animator.SetFloat("Speed", m_speedMove);
         }
         m_effectInWater.SetActive(false);
-        m_radar.SetActive(false);
+        //m_radar.SetActive(false);
         m_currentTarget = null;
     }
 
@@ -297,7 +297,6 @@ public class HumanControl : MonoBehaviour
         m_effectInWater.SetActive(false);
         m_animator.Play("Attack_On_Water");
     }
-
 
     public void EventShowSplash()
     {

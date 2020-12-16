@@ -94,7 +94,10 @@ public class UiManager : MonoBehaviour
         if (m_checkOnClick)
         {
             StartCoroutine(EffectButton(m_btnRetryOnplay));
-            StartCoroutine(WaitRetry(0.0f));
+            if (!GameControl.Instance.m_isComplete && !GameControl.Instance.m_isFail)
+            {
+                StartCoroutine(WaitRetry(0.0f));
+            }
         }
     }
 

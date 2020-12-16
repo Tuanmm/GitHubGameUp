@@ -8,6 +8,8 @@ public class FishEndControl : MonoBehaviour
 
     public AudioSource m_audioSource;
 
+    public GameObject m_bubbleFX;
+
     //public ParticleSystem m_effectSplash;
 
     private void Awake()
@@ -18,10 +20,7 @@ public class FishEndControl : MonoBehaviour
 
     private void OnEnable()
     {
-        //m_effectSplash.gameObject.SetActive(true);
         m_animator.Play("Idle");
-        //m_animator.SetTrigger("Idle");
-
     }
     private void Update()
     {
@@ -48,24 +47,9 @@ public class FishEndControl : MonoBehaviour
 
         Vector3 _point = transform.position;
         LeanTween.move(gameObject, startPos + (_point - startPos).normalized * 1f, 0.8f);
-        //yield return Yielders.Get(0.9f);
-        //float speedRot = 2f;
-        //while (gameObject.activeSelf)
-        //{
-        //    if (speedRot < 200f)
-        //    {
-        //        speedRot += Time.deltaTime;
-        //    }
-        //    transform.RotateAround(_point, Vector3.up, 200f * Time.deltaTime);
-        //    Vector3 _lookDirection = _point - transform.position;
-        //    _lookDirection = Vector3.Cross(_lookDirection.normalized, Vector3.up);
-        //    Quaternion _rot = Quaternion.LookRotation(_lookDirection, Vector3.up);
-        //    transform.rotation = Quaternion.Slerp(transform.rotation, _rot, speedRot * Time.deltaTime);
-        //    yield return null;
-        //}
     }
 
-    public IEnumerator Test(Vector3 _point)
+    public IEnumerator SwimAround(Vector3 _point)
     {
         float speedRot = 2f;
         while (gameObject.activeSelf)
@@ -85,6 +69,7 @@ public class FishEndControl : MonoBehaviour
 
     public void OnDeath(float time = 0f, bool isActive = true)
     {
+        GameControl.Instance.m_bubbleFxFishPink.SetActive(false);
         GameControl.Instance.m_isFail = true;
         StartCoroutine(WaitToDeath());
     }

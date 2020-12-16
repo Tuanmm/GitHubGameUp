@@ -31,6 +31,8 @@ public class GameControl : MonoBehaviour
     public List<GameObject> m_listEnv;
     private int m_idEnv;
 
+    public GameObject m_bubbleFxFishPink;
+
     private void Awake()
     {
         Application.targetFrameRate = 60;
@@ -110,10 +112,7 @@ public class GameControl : MonoBehaviour
 
     public void OnclickRetry()
     {
-        //if (!m_isComplete || !m_isFail)
-        {
-            LoadLevel(m_curentLevel);
-        }
+        LoadLevel(m_curentLevel);
     }
 
     public void OnclickNext()
@@ -156,8 +155,8 @@ public class GameControl : MonoBehaviour
 
     public IEnumerator SplineMove(GameObject _objectMove, Spline _spline, float speedMove = 0.2f, bool _checkLookAt = true)
     {
-        while (_objectMove.activeSelf)
-        {
+        //while (_objectMove.activeSelf)
+        //{
             Vector3[] vectorData = new Vector3[_spline.SplineNodes.Length];
             int lengthVectorData = 0;
             float moveTime = 0;
@@ -203,15 +202,15 @@ public class GameControl : MonoBehaviour
                 }
                 yield return new WaitForFixedUpdate();
             }
-            yield return Yielders.Get(0.25f);
-        }
+            _objectMove.SetActive(false);
+        //    yield return Yielders.Get(0.25f);
+        //}
     }
 
-    public void MoveHint(Spline _spline)
+    public void MoveHint(Spline _spline, float _speedMove = 1f)
     {
-        StopAllCoroutines();
         m_hand.SetActive(true);
-        StartCoroutine(SplineMove(m_hand, _spline, 1f, false));
+        StartCoroutine(SplineMove(m_hand, _spline, _speedMove, false));
     }
 
     private List<GameObject> m_listEffectSmokeFighting = new List<GameObject>();
@@ -235,6 +234,13 @@ public class GameControl : MonoBehaviour
         }
     }
 
+    public void ShowEmojiSad(Vector3 _pos)
+    {
+        _pos.y = 2f;
+        int rd = UnityEngine.Random.Range(0, 5);
+        string name = "Emoji_" + rd.ToString();
+        SimplePool.Spawn(name, _pos, Quaternion.identity);
+    }
 
     private List<GameObject> m_listFxSushi = new List<GameObject>();
 
